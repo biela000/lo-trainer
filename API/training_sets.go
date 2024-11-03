@@ -2,8 +2,10 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -47,7 +49,7 @@ func (controller *TrainingSetController) CreateTrainingSet(c *gin.Context) {
 		return
 	}
 
-	trainingSetCriteria.maxScore, err = strconv.Atoi(c.DefaultQuery("min_score", "100"))
+	trainingSetCriteria.maxScore, err = strconv.Atoi(c.DefaultQuery("max_score", "100"))
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -100,38 +102,65 @@ func (controller *TrainingSetController) CreateTrainingSet(c *gin.Context) {
 	}
 	tx.Commit()
 
+	fmt.Println("Training Set Created")
+	fmt.Println(trainingSetCriteria)
+	fmt.Println(trainingSet)
+
 	c.JSON(http.StatusOK, trainingSet)
 }
 
 func (controller *TrainingSetController) getPuzzlesForTrainingSet(
 	trainingSet *TrainingSet, criteria TrainingSetCriteria,
 ) error {
-	stmt, err := controller.db.Prepare(`
+	builder := strings.Builder{}
+	fmt.Println("Subjects:")
+	fmt.Println(criteria.subjects)
+
+	for i, subject := range criteria.subjects {
+		builder.WriteString("subjects LIKE \"%" + subject + "%\"")
+		if i < len(criteria.subjects)-1 {
+			builder.WriteString(" OR ")
+		}
+	}
+
+	subjectsCondition := builder.String()
+
+	// Unsafe because subjectsCondition is unsanitized
+	queryString := `
 		SELECT id FROM Puzzles
 		WHERE level IN (?)
-		AND format IN (?)
-		AND subject IN (?)
+		AND format IN (?) AND
+	` + subjectsCondition + `
 		AND score >= ?
 		AND score <= ?
 		AND year >= ?
 		AND year <= ?
 		ORDER BY RANDOM()
 		LIMIT 5;
-	`)
+	`
+
+	fmt.Println("Query String:")
+	fmt.Println(queryString)
+
+	stmt, err := controller.db.Prepare(queryString)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
 	rows, err := stmt.Query(
-		criteria.levels,
-		criteria.formats,
-		criteria.subjects,
+		strings.Join(criteria.levels, ","),
+		strings.Join(criteria.formats, ","),
 		criteria.minScore,
 		criteria.maxScore,
 		criteria.minYear,
 		criteria.maxYear,
 	)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	rows.Next()
 
 	puzzleIds := [5]*int{
 		&trainingSet.p1Id,

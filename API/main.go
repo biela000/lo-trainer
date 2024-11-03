@@ -11,8 +11,6 @@ import (
 func main() {
 	router := gin.Default()
 
-	router.Use(ErrorHandler)
-
 	db, err := sql.Open("sqlite3", "./lo_trainer.db")
 	if err != nil {
 		log.Fatal(err)
@@ -27,6 +25,8 @@ func main() {
 	{
 		v1.POST("/training_sets", trainingSetController.CreateTrainingSet)
 	}
+
+	router.Use(ErrorHandler)
 
 	router.Run(":8080")
 }
