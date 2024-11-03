@@ -83,7 +83,7 @@ func main() {
 
 		os.Remove("./puzzles.db")
 
-		db, err := sql.Open("sqlite3", "./puzzles.db")
+		db, err := sql.Open("sqlite3", "./lo_trainer.db")
 		if err != nil {
 			log.Fatal(err)
 		}
