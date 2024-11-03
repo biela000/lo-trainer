@@ -153,7 +153,7 @@ func (puzzle *Puzzle) getNameNumberYearFromColumn(columnText string) error {
 }
 
 func (puzzle *Puzzle) getLevelScoreFromColumn(columnText string) error {
-	re := regexp.MustCompile(`^[a-zA-Z\s\/]*`)
+	re := regexp.MustCompile(`^[a-zA-Z\s]*`)
 	puzzle.level = re.FindStringSubmatch(columnText)[0]
 
 	if strings.Contains(columnText, "No Data") {
@@ -161,23 +161,12 @@ func (puzzle *Puzzle) getLevelScoreFromColumn(columnText string) error {
 		return nil
 	}
 
-	score1, err := strconv.Atoi(
+	var err error
+	puzzle.score, err = strconv.Atoi(
 		columnText[strings.IndexByte(columnText, '[')+1 : strings.IndexByte(columnText, '%')],
 	)
 	if err != nil {
 		return err
-	}
-
-	lastSlashIndex := strings.LastIndexByte(columnText, '/')
-
-	if lastSlashIndex == -1 {
-		puzzle.score = score1
-	} else {
-		score2, err := strconv.Atoi(columnText[lastSlashIndex+2 : len(columnText)-2])
-		if err != nil {
-			return err
-		}
-		puzzle.score = (score1 + score2) / 2
 	}
 
 	return nil
