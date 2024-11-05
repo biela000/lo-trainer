@@ -116,21 +116,34 @@ func (controller *TrainingSetController) getPuzzlesForTrainingSet(
 	fmt.Println("Subjects:")
 	fmt.Println(criteria.subjects)
 
-	for i, subject := range criteria.subjects {
-		builder.WriteString("subjects LIKE \"%" + subject + "%\"")
+	queryArgs := []interface{}{}
+
+	for i := range criteria.levels {
+		queryArgs = append(queryArgs, criteria.levels[i])
+	}
+
+	for i := range criteria.formats {
+		queryArgs = append(queryArgs, criteria.formats[i])
+	}
+
+	for i := range criteria.subjects {
+		builder.WriteString("subjects LIKE '%' || ? || '%'")
 		if i < len(criteria.subjects)-1 {
 			builder.WriteString(" OR ")
 		}
+		queryArgs = append(queryArgs, criteria.subjects[i])
 	}
 
 	subjectsCondition := builder.String()
 
-	// Unsafe because subjectsCondition is unsanitized
+	levelsQueryPlaceholders := strings.Repeat("?, ", len(criteria.levels)-1) + "?"
+	formatsQueryPlaceholders := strings.Repeat("?, ", len(criteria.formats)-1) + "?"
+
 	queryString := `
 		SELECT id FROM Puzzles
-		WHERE level IN (?)
-		AND format IN (?) AND
-	` + subjectsCondition + `
+		WHERE level IN (` + levelsQueryPlaceholders + `)
+		AND format IN (` + formatsQueryPlaceholders + `) AND
+	(` + subjectsCondition + `)
 		AND score >= ?
 		AND score <= ?
 		AND year >= ?
@@ -148,14 +161,17 @@ func (controller *TrainingSetController) getPuzzlesForTrainingSet(
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(
-		strings.Join(criteria.levels, ","),
-		strings.Join(criteria.formats, ","),
+	queryArgs = append(
+		queryArgs,
 		criteria.minScore,
 		criteria.maxScore,
 		criteria.minYear,
 		criteria.maxYear,
 	)
+
+	fmt.Println(queryArgs)
+
+	rows, err := stmt.Query(queryArgs...)
 	if err != nil {
 		return err
 	}

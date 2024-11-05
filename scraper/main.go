@@ -81,7 +81,7 @@ func main() {
 		}
 		fmt.Println("Total puzzles:", len(puzzles))
 
-		os.Remove("./puzzles.db")
+		os.Remove("./lo_trainer.db")
 
 		db, err := sql.Open("sqlite3", "./lo_trainer.db")
 		if err != nil {
@@ -153,8 +153,8 @@ func (puzzle *Puzzle) getNameNumberYearFromColumn(columnText string) error {
 }
 
 func (puzzle *Puzzle) getLevelScoreFromColumn(columnText string) error {
-	re := regexp.MustCompile(`^[a-zA-Z\s]*`)
-	puzzle.level = re.FindStringSubmatch(columnText)[0]
+	re := regexp.MustCompile(`^[a-zA-Z\s2]*`)
+	puzzle.level = strings.Trim(re.FindStringSubmatch(columnText)[0], " ")
 
 	if strings.Contains(columnText, "No Data") {
 		puzzle.score = -1
@@ -189,7 +189,7 @@ func (puzzle *Puzzle) getSubjectsFromColumn(columnText string) {
 		builder.WriteString(subjects[columnText[i:i+2]])
 
 		if i+3 < len(columnText) {
-			builder.WriteString(", ")
+			builder.WriteString(" | ")
 		}
 	}
 
