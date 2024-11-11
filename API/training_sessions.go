@@ -278,3 +278,60 @@ func (controller *TrainingSessionController) DeleteTrainingSession(c *gin.Contex
 
 	c.JSON(http.StatusNoContent, nil)
 }
+
+func (controller *TrainingSessionController) GetTrainingSessionStreak(c *gin.Context) {
+	query := `
+		WITH ordered_dates AS (
+			SELECT 
+				id,
+				date_taken,
+				finished,
+				ROW_NUMBER() OVER (ORDER BY date_taken DESC) AS row_num
+			FROM 
+				Training_Sessions
+			WHERE 
+				finished = 1
+		),
+		acceptable_latest_date AS (
+			SELECT 
+				date_taken AS latest_date
+			FROM 
+				ordered_dates
+			WHERE 
+				date_taken IN (DATE('now'), DATE('now', '-1 day'))
+			ORDER BY 
+				date_taken DESC
+           		LIMIT 1
+		),
+		consecutive_days AS (
+			SELECT 
+				id,
+				date_taken,
+				finished,
+				DATE(date_taken, '-' || (ROW_NUMBER() OVER (ORDER BY date_taken DESC)) || ' day') AS consecutive_group
+            		FROM 
+				ordered_dates
+		)
+		SELECT 
+			COUNT(*)
+		FROM 
+			consecutive_days
+		WHERE 
+			consecutive_group = (
+				SELECT 
+					DATE(latest_date, '-' || (ROW_NUMBER() OVER (ORDER BY latest_date DESC)) || ' day')
+				FROM 
+					acceptable_latest_date
+			);
+	`
+
+	var count int
+	err := controller.db.QueryRow(query).Scan(&count)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	fmt.Println("Streak:", count)
+	c.JSON(http.StatusOK, count)
+}
