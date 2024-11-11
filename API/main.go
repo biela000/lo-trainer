@@ -26,6 +26,7 @@ func main() {
 		v1.GET("/training_sets", trainingSetController.GetTrainingSets)
 		v1.POST("/training_sets", trainingSetController.CreateTrainingSet)
 		v1.GET("/training_sets/:id", trainingSetController.GetTrainingSet)
+		v1.DELETE("/training_sets/:id", trainingSetController.DeleteTrainingSet)
 	}
 
 	router.Use(ErrorHandler)

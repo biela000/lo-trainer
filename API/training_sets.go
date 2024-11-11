@@ -139,6 +139,29 @@ func (controller *TrainingSetController) CreateTrainingSet(c *gin.Context) {
 	c.JSON(http.StatusOK, trainingSet)
 }
 
+func (controller *TrainingSetController) DeleteTrainingSet(c *gin.Context) {
+	trainingSetId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	stmt, err := controller.db.Prepare(`
+		DELETE FROM Training_Sets
+		WHERE id = ?;
+	`)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(trainingSetId)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	c.JSON(http.StatusNoContent, nil)
+}
+
 func (trainingSetCriteria *TrainingSetCriteria) getFromQuery(c *gin.Context) {
 	trainingSetCriteria.levels = c.QueryArray("levels")
 	if len(trainingSetCriteria.levels) == 0 {
