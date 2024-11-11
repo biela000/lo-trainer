@@ -23,7 +23,9 @@ func main() {
 
 	v1 := router.Group("/v1")
 	{
+		v1.GET("/training_sets", trainingSetController.GetTrainingSets)
 		v1.POST("/training_sets", trainingSetController.CreateTrainingSet)
+		v1.GET("/training_sets/:id", trainingSetController.GetTrainingSet)
 	}
 
 	router.Use(ErrorHandler)
@@ -33,8 +35,14 @@ func main() {
 
 func createTables(db *sql.DB) error {
 	sqlStmt := `
-		CREATE TABLE IF NOT EXISTS Training_Sets (id integer not null primary key, p1_id integer, p2_id integer, p3_id integer, p4_id integer, p5_id integer);
-		DELETE FROM Training_Sets;
+		CREATE TABLE IF NOT EXISTS Training_Sets (
+			id integer not null primary key,
+			p1_id integer,
+			p2_id integer,
+			p3_id integer,
+			p4_id integer,
+			p5_id integer
+		);
 	`
 	_, err := db.Exec(sqlStmt)
 	if err != nil {
@@ -42,17 +50,22 @@ func createTables(db *sql.DB) error {
 	}
 
 	sqlStmt = `
-		CREATE TABLE IF NOT EXISTS Scores (id integer not null primary key, training_set_id integer, p1_score integer, p2_score integer, p3_score integer, p4_score integer, p5_score integer, full_score integer);
-		DELETE FROM Scores;
-	`
-	_, err = db.Exec(sqlStmt)
-	if err != nil {
-		return err
-	}
-
-	sqlStmt = `
-		CREATE TABLE IF NOT EXISTS Times (id integer not null primary key, training_set_id integer, p1_time integer, p2_time integer, p3_time integer, p4_time integer, p5_time integer, full_time integer);
-		DELETE FROM Times;
+		CREATE TABLE IF NOT EXISTS Training_Sessions (
+			id integer not null primary key,
+			training_set_id integer,
+			p1_score integer,
+			p2_score integer,
+			p3_score integer,
+			p4_score integer,
+			p5_score integer,
+			full_score integer,
+			p1_time integer,
+			p2_time integer,
+			p3_time integer,
+			p4_time integer,
+			p5_time integer,
+			full_time integer
+		);
 	`
 	_, err = db.Exec(sqlStmt)
 	if err != nil {
