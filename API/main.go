@@ -64,7 +64,8 @@ func createTables(db *sql.DB) error {
 			p3_time integer,
 			p4_time integer,
 			p5_time integer,
-			full_time integer
+			full_time integer,
+			finished boolean
 		);
 	`
 	_, err = db.Exec(sqlStmt)
