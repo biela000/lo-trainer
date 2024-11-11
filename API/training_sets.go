@@ -11,7 +11,12 @@ import (
 )
 
 type TrainingSet struct {
-	id, p1Id, p2Id, p3Id, p4Id, p5Id int
+	Id   int `json:"id"`
+	P1Id int `json:"p1_id"`
+	P2Id int `json:"p2_id"`
+	P3Id int `json:"p3_id"`
+	P4Id int `json:"p4_id"`
+	P5Id int `json:"p5_id"`
 }
 
 type TrainingSetController struct {
@@ -24,9 +29,55 @@ type TrainingSetCriteria struct {
 }
 
 func (controller *TrainingSetController) CreateTrainingSet(c *gin.Context) {
-	trainingSet := TrainingSet{}
+	trainingSet := TrainingSet{Id: -1}
 	trainingSetCriteria := TrainingSetCriteria{}
 
+	trainingSetCriteria.getFromQuery(c)
+
+	tx, err := controller.db.Begin()
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	controller.getPuzzlesForTrainingSet(&trainingSet, trainingSetCriteria)
+
+	stmt, err := tx.Prepare(`
+		INSERT INTO Training_Sets (
+			p1_id,
+			p2_id,
+			p3_id,
+			p4_id,
+			p5_id
+		) VALUES (?, ?, ?, ?, ?)
+		RETURNING id;
+	`)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(
+		trainingSet.P1Id,
+		trainingSet.P2Id,
+		trainingSet.P3Id,
+		trainingSet.P4Id,
+		trainingSet.P5Id,
+	).Scan(&trainingSet.Id)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	tx.Commit()
+
+	fmt.Println("Training Set Created")
+	fmt.Println(trainingSet)
+
+	c.JSON(http.StatusOK, trainingSet)
+}
+
+func (trainingSetCriteria *TrainingSetCriteria) getFromQuery(c *gin.Context) {
 	trainingSetCriteria.levels = c.QueryArray("levels")
 	if len(trainingSetCriteria.levels) == 0 {
 		trainingSetCriteria.levels = DefaultLevels[:]
@@ -66,56 +117,47 @@ func (controller *TrainingSetController) CreateTrainingSet(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-
-	tx, err := controller.db.Begin()
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-
-	controller.getPuzzlesForTrainingSet(&trainingSet, trainingSetCriteria)
-
-	stmt, err := tx.Prepare(`
-		INSERT INTO Training_Sets (
-			p1_id,
-			p2_id,
-			p3_id,
-			p4_id,
-			p5_id
-		) VALUES (?, ?, ?, ?, ?)
-	`)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	defer stmt.Close()
-
-	if _, err = stmt.Exec(
-		trainingSet.p1Id,
-		trainingSet.p2Id,
-		trainingSet.p3Id,
-		trainingSet.p4Id,
-		trainingSet.p5Id,
-	); err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	tx.Commit()
-
-	fmt.Println("Training Set Created")
-	fmt.Println(trainingSetCriteria)
-	fmt.Println(trainingSet)
-
-	c.JSON(http.StatusOK, trainingSet)
 }
 
 func (controller *TrainingSetController) getPuzzlesForTrainingSet(
 	trainingSet *TrainingSet, criteria TrainingSetCriteria,
 ) error {
-	builder := strings.Builder{}
-	fmt.Println("Subjects:")
-	fmt.Println(criteria.subjects)
+	queryString, queryArgs := createPuzzleQuery(criteria)
 
+	stmt, err := controller.db.Prepare(queryString)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(queryArgs...)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	rows.Next()
+
+	puzzleIds := [5]*int{
+		&trainingSet.P1Id,
+		&trainingSet.P2Id,
+		&trainingSet.P3Id,
+		&trainingSet.P4Id,
+		&trainingSet.P5Id,
+	}
+
+	for _, puzzleId := range puzzleIds {
+		if err = rows.Scan(puzzleId); err != nil {
+			return err
+		}
+		if exists := rows.Next(); !exists {
+			break
+		}
+	}
+	return nil
+}
+
+func createPuzzleQuery(criteria TrainingSetCriteria) (string, []interface{}) {
+	builder := strings.Builder{}
 	queryArgs := []interface{}{}
 
 	for i := range criteria.levels {
@@ -148,19 +190,14 @@ func (controller *TrainingSetController) getPuzzlesForTrainingSet(
 		AND score <= ?
 		AND year >= ?
 		AND year <= ?
+		AND id NOT IN (SELECT p1_id FROM Training_Sets)
+		AND id NOT IN (SELECT p2_id FROM Training_Sets)
+		AND id NOT IN (SELECT p3_id FROM Training_Sets)
+		AND id NOT IN (SELECT p4_id FROM Training_Sets)
+		AND id NOT IN (SELECT p5_id FROM Training_Sets)
 		ORDER BY RANDOM()
 		LIMIT 5;
 	`
-
-	fmt.Println("Query String:")
-	fmt.Println(queryString)
-
-	stmt, err := controller.db.Prepare(queryString)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
 	queryArgs = append(
 		queryArgs,
 		criteria.minScore,
@@ -169,30 +206,5 @@ func (controller *TrainingSetController) getPuzzlesForTrainingSet(
 		criteria.maxYear,
 	)
 
-	fmt.Println(queryArgs)
-
-	rows, err := stmt.Query(queryArgs...)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-	rows.Next()
-
-	puzzleIds := [5]*int{
-		&trainingSet.p1Id,
-		&trainingSet.p2Id,
-		&trainingSet.p3Id,
-		&trainingSet.p4Id,
-		&trainingSet.p5Id,
-	}
-
-	for _, puzzleId := range puzzleIds {
-		if err = rows.Scan(puzzleId); err != nil {
-			return err
-		}
-		if exists := rows.Next(); !exists {
-			break
-		}
-	}
-	return nil
+	return queryString, queryArgs
 }
