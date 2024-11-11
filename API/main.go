@@ -20,6 +20,7 @@ func main() {
 	createTables(db)
 
 	trainingSetController := TrainingSetController{db: db}
+	trainingSessionController := TrainingSessionController{db: db}
 
 	v1 := router.Group("/v1")
 	{
@@ -27,6 +28,12 @@ func main() {
 		v1.POST("/training_sets", trainingSetController.CreateTrainingSet)
 		v1.GET("/training_sets/:id", trainingSetController.GetTrainingSet)
 		v1.DELETE("/training_sets/:id", trainingSetController.DeleteTrainingSet)
+
+		v1.GET("/training_sessions", trainingSessionController.GetTrainingSessions)
+		v1.POST("/training_sessions", trainingSessionController.CreateTrainingSession)
+		v1.GET("/training_sessions/:id", trainingSessionController.GetTrainingSession)
+		v1.PUT("/training_sessions/:id", trainingSessionController.UpdateTrainingSession)
+		v1.DELETE("/training_sessions/:id", trainingSessionController.DeleteTrainingSession)
 	}
 
 	router.Use(ErrorHandler)
