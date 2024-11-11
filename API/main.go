@@ -65,6 +65,7 @@ func createTables(db *sql.DB) error {
 			p4_time integer,
 			p5_time integer,
 			full_time integer,
+			date_taken datetime default current_timestamp,
 			finished boolean
 		);
 	`
