@@ -28,6 +28,68 @@ type TrainingSetCriteria struct {
 	minScore, maxScore, minYear, maxYear int
 }
 
+func (controller *TrainingSetController) GetTrainingSets(c *gin.Context) {
+	trainingSets := []TrainingSet{}
+	rows, err := controller.db.Query(`
+		SELECT *
+		FROM Training_Sets;
+	`)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		trainingSet := TrainingSet{}
+		err = rows.Scan(
+			&trainingSet.Id,
+			&trainingSet.P1Id,
+			&trainingSet.P2Id,
+			&trainingSet.P3Id,
+			&trainingSet.P4Id,
+			&trainingSet.P5Id,
+		)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		trainingSets = append(trainingSets, trainingSet)
+	}
+	c.JSON(http.StatusOK, trainingSets)
+}
+
+func (controller *TrainingSetController) GetTrainingSet(c *gin.Context) {
+	trainingSet := TrainingSet{}
+	trainingSetId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	stmt, err := controller.db.Prepare(`
+		SELECT *
+		FROM Training_Sets
+		WHERE id = ?;
+	`)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	defer stmt.Close()
+	err = stmt.QueryRow(trainingSetId).Scan(
+		&trainingSet.Id,
+		&trainingSet.P1Id,
+		&trainingSet.P2Id,
+		&trainingSet.P3Id,
+		&trainingSet.P4Id,
+		&trainingSet.P5Id,
+	)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	c.JSON(http.StatusOK, trainingSet)
+}
+
 func (controller *TrainingSetController) CreateTrainingSet(c *gin.Context) {
 	trainingSet := TrainingSet{Id: -1}
 	trainingSetCriteria := TrainingSetCriteria{}
