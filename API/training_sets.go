@@ -12,11 +12,20 @@ import (
 
 type TrainingSet struct {
 	Id   int `json:"id"`
-	P1Id int `json:"p1_id"`
-	P2Id int `json:"p2_id"`
-	P3Id int `json:"p3_id"`
-	P4Id int `json:"p4_id"`
-	P5Id int `json:"p5_id"`
+	P1Id int `json:"p1Id"`
+	P2Id int `json:"p2Id"`
+	P3Id int `json:"p3Id"`
+	P4Id int `json:"p4Id"`
+	P5Id int `json:"p5Id"`
+}
+
+type PopulatedTrainingSet struct {
+	Id     int    `json:"id"`
+	P1Link string `json:"p1Link"`
+	P2Link string `json:"p2Link"`
+	P3Link string `json:"p3Link"`
+	P4Link string `json:"p4Link"`
+	P5Link string `json:"p5Link"`
 }
 
 type TrainingSetController struct {
@@ -136,7 +145,47 @@ func (controller *TrainingSetController) CreateTrainingSet(c *gin.Context) {
 	fmt.Println("Training Set Created")
 	fmt.Println(trainingSet)
 
-	c.JSON(http.StatusOK, trainingSet)
+	populateStmt, err := controller.db.Prepare(`
+		SELECT 
+			t.id,
+			p1.link AS p1_link,
+			p2.link AS p2_link,
+			p3.link AS p3_link,
+			p4.link AS p4_link,
+			p5.link AS p5_link
+		FROM 
+			Training_Sets t
+		LEFT JOIN 
+			puzzles p1 ON t.p1_id = p1.id
+		LEFT JOIN 
+			puzzles p2 ON t.p2_id = p2.id
+		LEFT JOIN 
+			puzzles p3 ON t.p3_id = p3.id
+		LEFT JOIN 
+			puzzles p4 ON t.p4_id = p4.id
+		LEFT JOIN 
+			puzzles p5 ON t.p5_id = p5.id;
+		WHERE
+			t.id = ?
+	`)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	defer populateStmt.Close()
+
+	populatedTrainingSet := PopulatedTrainingSet{}
+
+	err = populateStmt.QueryRow(trainingSet.Id).Scan(
+		&populatedTrainingSet.Id,
+		&populatedTrainingSet.P1Link,
+		&populatedTrainingSet.P2Link,
+		&populatedTrainingSet.P3Link,
+		&populatedTrainingSet.P4Link,
+		&populatedTrainingSet.P5Link,
+	)
+
+	c.JSON(http.StatusOK, populatedTrainingSet)
 }
 
 func (controller *TrainingSetController) DeleteTrainingSet(c *gin.Context) {

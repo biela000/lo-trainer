@@ -11,20 +11,20 @@ import (
 
 type TrainingSession struct {
 	Id            int `json:"id"`
-	TrainingSetId int `json:"training_set_id"`
-	P1Score       int `json:"p1_score"`
-	P2Score       int `json:"p2_score"`
-	P3Score       int `json:"p3_score"`
-	P4Score       int `json:"p4_score"`
-	P5Score       int `json:"p5_score"`
-	FullScore     int `json:"full_score"`
-	P1Time        int `json:"p1_time"`
-	P2Time        int `json:"p2_time"`
-	P3Time        int `json:"p3_time"`
-	P4Time        int `json:"p4_time"`
-	P5Time        int `json:"p5_time"`
-	FullTime      int `json:"full_time"`
-	DateTaken     int `json:"date_taken"`
+	TrainingSetId int `json:"trainingSetId"`
+	P1Score       int `json:"p1Score"`
+	P2Score       int `json:"p2Score"`
+	P3Score       int `json:"p3Score"`
+	P4Score       int `json:"p4Score"`
+	P5Score       int `json:"p5Score"`
+	FullScore     int `json:"fullScore"`
+	P1Time        int `json:"p1Time"`
+	P2Time        int `json:"p2Time"`
+	P3Time        int `json:"p3Time"`
+	P4Time        int `json:"p4Time"`
+	P5Time        int `json:"p5Time"`
+	FullTime      int `json:"fullTime"`
+	DateTaken     int `json:"dateTaken"`
 	Finished      int `json:"finished"`
 }
 
@@ -333,5 +333,5 @@ func (controller *TrainingSessionController) GetTrainingSessionStreak(c *gin.Con
 	}
 
 	fmt.Println("Streak:", count)
-	c.JSON(http.StatusOK, count)
+	c.JSON(http.StatusOK, map[string]int{"streak": count})
 }
