@@ -38,10 +38,27 @@ type TrainingSetCriteria struct {
 }
 
 func (controller *TrainingSetController) GetTrainingSets(c *gin.Context) {
-	trainingSets := []TrainingSet{}
+	trainingSets := []PopulatedTrainingSet{}
 	rows, err := controller.db.Query(`
-		SELECT *
-		FROM Training_Sets;
+		SELECT 
+			t.id,
+			p1.link AS p1_link,
+			p2.link AS p2_link,
+			p3.link AS p3_link,
+			p4.link AS p4_link,
+			p5.link AS p5_link
+		FROM 
+			Training_Sets t
+		LEFT JOIN 
+			puzzles p1 ON t.p1_id = p1.id
+		LEFT JOIN 
+			puzzles p2 ON t.p2_id = p2.id
+		LEFT JOIN 
+			puzzles p3 ON t.p3_id = p3.id
+		LEFT JOIN 
+			puzzles p4 ON t.p4_id = p4.id
+		LEFT JOIN 
+			puzzles p5 ON t.p5_id = p5.id;
 	`)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -49,14 +66,14 @@ func (controller *TrainingSetController) GetTrainingSets(c *gin.Context) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		trainingSet := TrainingSet{}
+		trainingSet := PopulatedTrainingSet{}
 		err = rows.Scan(
 			&trainingSet.Id,
-			&trainingSet.P1Id,
-			&trainingSet.P2Id,
-			&trainingSet.P3Id,
-			&trainingSet.P4Id,
-			&trainingSet.P5Id,
+			&trainingSet.P1Link,
+			&trainingSet.P2Link,
+			&trainingSet.P3Link,
+			&trainingSet.P4Link,
+			&trainingSet.P5Link,
 		)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
@@ -68,16 +85,34 @@ func (controller *TrainingSetController) GetTrainingSets(c *gin.Context) {
 }
 
 func (controller *TrainingSetController) GetTrainingSet(c *gin.Context) {
-	trainingSet := TrainingSet{}
+	trainingSet := PopulatedTrainingSet{}
 	trainingSetId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 	stmt, err := controller.db.Prepare(`
-		SELECT *
-		FROM Training_Sets
-		WHERE id = ?;
+		SELECT 
+			t.id,
+			p1.link AS p1_link,
+			p2.link AS p2_link,
+			p3.link AS p3_link,
+			p4.link AS p4_link,
+			p5.link AS p5_link
+		FROM 
+			Training_Sets t
+		LEFT JOIN 
+			puzzles p1 ON t.p1_id = p1.id
+		LEFT JOIN 
+			puzzles p2 ON t.p2_id = p2.id
+		LEFT JOIN 
+			puzzles p3 ON t.p3_id = p3.id
+		LEFT JOIN 
+			puzzles p4 ON t.p4_id = p4.id
+		LEFT JOIN 
+			puzzles p5 ON t.p5_id = p5.id;
+		WHERE
+			t.id = ?;
 	`)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -86,11 +121,11 @@ func (controller *TrainingSetController) GetTrainingSet(c *gin.Context) {
 	defer stmt.Close()
 	err = stmt.QueryRow(trainingSetId).Scan(
 		&trainingSet.Id,
-		&trainingSet.P1Id,
-		&trainingSet.P2Id,
-		&trainingSet.P3Id,
-		&trainingSet.P4Id,
-		&trainingSet.P5Id,
+		&trainingSet.P1Link,
+		&trainingSet.P2Link,
+		&trainingSet.P3Link,
+		&trainingSet.P4Link,
+		&trainingSet.P5Link,
 	)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
