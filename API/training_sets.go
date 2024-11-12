@@ -110,7 +110,7 @@ func (controller *TrainingSetController) GetTrainingSet(c *gin.Context) {
 		LEFT JOIN 
 			puzzles p4 ON t.p4_id = p4.id
 		LEFT JOIN 
-			puzzles p5 ON t.p5_id = p5.id;
+			puzzles p5 ON t.p5_id = p5.id
 		WHERE
 			t.id = ?;
 	`)
@@ -199,9 +199,9 @@ func (controller *TrainingSetController) CreateTrainingSet(c *gin.Context) {
 		LEFT JOIN 
 			puzzles p4 ON t.p4_id = p4.id
 		LEFT JOIN 
-			puzzles p5 ON t.p5_id = p5.id;
+			puzzles p5 ON t.p5_id = p5.id
 		WHERE
-			t.id = ?
+			t.id = ?;
 	`)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
