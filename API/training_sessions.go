@@ -5,27 +5,28 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 type TrainingSession struct {
-	Id            int `json:"id"`
-	TrainingSetId int `json:"trainingSetId"`
-	P1Score       int `json:"p1Score"`
-	P2Score       int `json:"p2Score"`
-	P3Score       int `json:"p3Score"`
-	P4Score       int `json:"p4Score"`
-	P5Score       int `json:"p5Score"`
-	FullScore     int `json:"fullScore"`
-	P1Time        int `json:"p1Time"`
-	P2Time        int `json:"p2Time"`
-	P3Time        int `json:"p3Time"`
-	P4Time        int `json:"p4Time"`
-	P5Time        int `json:"p5Time"`
-	FullTime      int `json:"fullTime"`
-	DateTaken     int `json:"dateTaken"`
-	Finished      int `json:"finished"`
+	Id            int       `json:"id"`
+	TrainingSetId int       `json:"trainingSetId"`
+	P1Score       int       `json:"p1Score"`
+	P2Score       int       `json:"p2Score"`
+	P3Score       int       `json:"p3Score"`
+	P4Score       int       `json:"p4Score"`
+	P5Score       int       `json:"p5Score"`
+	FullScore     int       `json:"fullScore"`
+	P1Time        int       `json:"p1Time"`
+	P2Time        int       `json:"p2Time"`
+	P3Time        int       `json:"p3Time"`
+	P4Time        int       `json:"p4Time"`
+	P5Time        int       `json:"p5Time"`
+	FullTime      int       `json:"fullTime"`
+	DateTaken     time.Time `json:"dateTaken"`
+	Finished      bool      `json:"finished"`
 }
 
 type TrainingSessionController struct {
@@ -142,8 +143,8 @@ func (controller *TrainingSessionController) CreateTrainingSession(c *gin.Contex
 			p5_time,
 			full_time,
 			finished
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-		RETURNING id, date_taken;
+		) VALUES (?, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+		RETURNING *;
 	`)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -153,20 +154,24 @@ func (controller *TrainingSessionController) CreateTrainingSession(c *gin.Contex
 
 	err = stmt.QueryRow(
 		trainingSession.TrainingSetId,
-		trainingSession.P1Score,
-		trainingSession.P2Score,
-		trainingSession.P3Score,
-		trainingSession.P4Score,
-		trainingSession.P5Score,
-		trainingSession.FullScore,
-		trainingSession.P1Time,
-		trainingSession.P2Time,
-		trainingSession.P3Time,
-		trainingSession.P4Time,
-		trainingSession.P5Time,
-		trainingSession.FullTime,
-		trainingSession.Finished,
-	).Scan(&trainingSession.Id, &trainingSession.DateTaken)
+	).Scan(
+		&trainingSession.Id,
+		&trainingSession.TrainingSetId,
+		&trainingSession.P1Score,
+		&trainingSession.P2Score,
+		&trainingSession.P3Score,
+		&trainingSession.P4Score,
+		&trainingSession.P5Score,
+		&trainingSession.FullScore,
+		&trainingSession.P1Time,
+		&trainingSession.P2Time,
+		&trainingSession.P3Time,
+		&trainingSession.P4Time,
+		&trainingSession.P5Time,
+		&trainingSession.FullTime,
+		&trainingSession.DateTaken,
+		&trainingSession.Finished,
+	)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
