@@ -56,11 +56,11 @@
 		{#each trainingSets as { id, p1Link, p2Link, p3Link, p4Link, p5Link }}
 			<tr>
 				<td>{id}</td>
-				<td>{p1Link}</td>
-				<td>{p2Link}</td>
-				<td>{p3Link}</td>
-				<td>{p4Link}</td>
-				<td>{p5Link}</td>
+				<td><a href={p1Link} target="_blank">{p1Link}</a></td>
+				<td><a href={p2Link} target="_blank">{p2Link}</a></td>
+				<td><a href={p3Link} target="_blank">{p3Link}</a></td>
+				<td><a href={p4Link} target="_blank">{p4Link}</a></td>
+				<td><a href={p5Link} target="_blank">{p5Link}</a></td>
 				<td>
 					<button onclick={() => startTrainingSession(id)}>
 						Start session
