@@ -1,9 +1,11 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { API_URL } from '$lib/api/constants';
 	import PuzzleProgress from '$lib/components/PuzzleProgress.svelte';
 	import type { TrainingSession } from '$lib/types/training-session';
 	import type { TrainingSet } from '$lib/types/training-set';
 	import type { PageProps } from './proxy+page';
+	import type { ChangeEventHandler } from 'svelte/elements';
 
 	let { data }: { data: PageProps } = $props();
 
@@ -58,6 +60,13 @@
 		}
 	]);
 
+	const changePuzzleScore: ChangeEventHandler<HTMLInputElement> = (event) => {
+		// const { name, value } = event.target as HTMLInputElement;
+		const { name, value } = event.currentTarget;
+		// @ts-expect-error I did a stupid thing when it comes to storing data in db
+		trainingSession[name] = value;
+	};
+
 	let currentPuzzle = $state<number | undefined>(undefined);
 
 	const changeCurrentPuzzle = (index: number) => () => {
@@ -80,9 +89,22 @@
 			return () => clearInterval(timer);
 		}
 	});
+
+	const finishSession = async () => {
+		await fetch(`${API_URL}/training_sessions/${data.id}`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(trainingSession)
+		});
+		goto('/');
+	};
 </script>
 
 <h1>Session id #{trainingSession?.id}</h1>
 {#if trainingSet}
-	<PuzzleProgress {puzzles} {changeCurrentPuzzle} {currentPuzzle} />
+	<PuzzleProgress {puzzles} {changePuzzleScore} {changeCurrentPuzzle} {currentPuzzle} />
+	<button onclick={finishSession}>Finish session</button>
+	<button>Save session</button>
 {/if}

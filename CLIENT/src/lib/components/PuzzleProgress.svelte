@@ -1,6 +1,9 @@
 <script lang="ts">
+	import type { ChangeEventHandler } from 'svelte/elements';
+
 	let {
 		puzzles,
+		changePuzzleScore,
 		changeCurrentPuzzle,
 		currentPuzzle
 	}: {
@@ -9,6 +12,7 @@
 			score: number;
 			time: number;
 		}[];
+		changePuzzleScore: ChangeEventHandler<HTMLInputElement>;
 		changeCurrentPuzzle: (index: number) => () => void;
 		currentPuzzle: number | undefined;
 	} = $props();
@@ -32,7 +36,16 @@
 						Puzzle {i + 1}
 					</a>
 				</td>
-				<td>{score}</td>
+				<td>
+					<input
+						type="number"
+						min="0"
+						max="100"
+						name={`p${i + 1}Score`}
+						onchange={changePuzzleScore}
+						value={score}
+					/>
+				</td>
 				<td>{new Date(time).getMinutes()}m</td>
 				<td>
 					<button onclick={changeCurrentPuzzle(i)}>
