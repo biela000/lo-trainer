@@ -39,6 +39,7 @@
 	};
 </script>
 
+<h2>Your Training Sets</h2>
 <table>
 	<thead>
 		<tr>

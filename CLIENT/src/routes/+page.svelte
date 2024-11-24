@@ -1,5 +1,6 @@
 <script>
 	import NewTrainingSetForm from '$lib/components/NewTrainingSetForm.svelte';
+	import SubjectStats from '$lib/components/SubjectStats.svelte';
 	import TrainingSessions from '$lib/components/TrainingSessions.svelte';
 	import TrainingSets from '$lib/components/TrainingSets.svelte';
 	import Welcome from '$lib/components/Welcome.svelte';
@@ -12,4 +13,5 @@
 	<NewTrainingSetForm />
 	<TrainingSets />
 	<TrainingSessions />
+	<SubjectStats />
 </main>

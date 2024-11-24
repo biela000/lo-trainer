@@ -2,24 +2,32 @@
 	import { goto } from '$app/navigation';
 	import { API_URL } from '$lib/api/constants';
 	import type { TrainingSession } from '$lib/types/training-session';
-	import TrainingSets from './TrainingSets.svelte';
 
 	let trainingSessions: TrainingSession[] = $state([]);
 
-	$effect(() => {
-		const getTrainingSessions = async () => {
-			const response = await fetch(`${API_URL}/training_sessions`);
-			trainingSessions = (await response.json()) as TrainingSession[];
-		};
+	const getTrainingSessions = async () => {
+		const response = await fetch(`${API_URL}/training_sessions`);
+		trainingSessions = (await response.json()) as TrainingSession[];
+	};
 
+	$effect(() => {
 		getTrainingSessions();
 	});
 
 	const goToSession = (id: number) => {
 		goto(`/sessions/${id}`);
 	};
+
+	const deleteSession = async (id: number) => {
+		await fetch(`${API_URL}/training_sessions/${id}`, {
+			method: 'DELETE'
+		});
+
+		getTrainingSessions();
+	};
 </script>
 
+<h2>Your Training Sessions</h2>
 <table>
 	<thead>
 		<tr>
@@ -38,6 +46,7 @@
 			<th>P5 Time</th>
 			<th>Full time</th>
 			<th>Finished</th>
+			<th></th>
 			<th></th>
 		</tr>
 	</thead>
@@ -69,6 +78,11 @@
 						</button>
 					</td>
 				{/if}
+				<td>
+					<button onclick={() => deleteSession(trainingSession.id)}>
+						Delete
+					</button>
+				</td>
 			</tr>
 		{/each}
 	</tbody>
