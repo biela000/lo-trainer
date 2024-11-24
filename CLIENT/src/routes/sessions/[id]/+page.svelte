@@ -12,23 +12,23 @@
 	let trainingSession = $state<TrainingSession | undefined>();
 	let trainingSet = $state<TrainingSet | undefined>();
 
-	const getTrainingSession = async () => {
-		const trainingSessionResponse = await fetch(
-			`${API_URL}/training_sessions/${data.id}`
-		);
-		trainingSession = (await trainingSessionResponse.json()) as TrainingSession;
-	};
-
-	const getTrainingSet = async () => {
-		if (!trainingSession) return;
-
-		const trainingSetResponse = await fetch(
-			`${API_URL}/training_sets/${trainingSession.trainingSetId}`
-		);
-		trainingSet = (await trainingSetResponse.json()) as TrainingSet;
-	};
-
 	$effect(() => {
+		const getTrainingSession = async () => {
+			const trainingSessionResponse = await fetch(
+				`${API_URL}/training_sessions/${data.id}`
+			);
+			trainingSession = (await trainingSessionResponse.json()) as TrainingSession;
+		};
+
+		const getTrainingSet = async () => {
+			if (!trainingSession) return;
+
+			const trainingSetResponse = await fetch(
+				`${API_URL}/training_sets/${trainingSession.trainingSetId}`
+			);
+			trainingSet = (await trainingSetResponse.json()) as TrainingSet;
+		};
+
 		getTrainingSession().then(getTrainingSet);
 	});
 
@@ -64,7 +64,7 @@
 		// const { name, value } = event.target as HTMLInputElement;
 		const { name, value } = event.currentTarget;
 		// @ts-expect-error I did a stupid thing when it comes to storing data in db
-		trainingSession[name] = value;
+		trainingSession[name] = +value;
 	};
 
 	let currentPuzzle = $state<number | undefined>(undefined);
@@ -93,6 +93,24 @@
 
 	const saveSession = async () => {
 		if (!trainingSession) return;
+
+		trainingSession.fullTime =
+			+trainingSession.p1Time +
+			trainingSession.p2Time +
+			trainingSession.p3Time +
+			trainingSession.p4Time +
+			trainingSession.p5Time;
+
+		trainingSession.fullScore = Math.floor(
+			(trainingSession.p1Score +
+				trainingSession.p2Score +
+				trainingSession.p3Score +
+				trainingSession.p4Score +
+				trainingSession.p5Score) /
+				5
+		);
+
+		console.log(trainingSession);
 
 		await fetch(`${API_URL}/training_sessions/${data.id}`, {
 			method: 'PUT',
