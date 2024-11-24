@@ -13,5 +13,5 @@ export interface TrainingSession {
 	p4Time: number;
 	p5Time: number;
 	fullTime: number;
-	fininshed: number;
+	finished: boolean;
 }

@@ -83,6 +83,7 @@
 				const currentPuzzleTimePropName = `p${currentPuzzle! + 1}Time`;
 				// @ts-expect-error I did a stupid thing when it comes to storing data in db
 				trainingSession[currentPuzzleTimePropName] = Date.now() - startTime;
+				saveSession();
 			}, 15000);
 			return () => clearInterval(timer);
 		} else if (trainingSession && timer) {
@@ -90,7 +91,9 @@
 		}
 	});
 
-	const finishSession = async () => {
+	const saveSession = async () => {
+		if (!trainingSession) return;
+
 		await fetch(`${API_URL}/training_sessions/${data.id}`, {
 			method: 'PUT',
 			headers: {
@@ -98,6 +101,15 @@
 			},
 			body: JSON.stringify(trainingSession)
 		});
+	};
+
+	const finishSession = async () => {
+		if (!trainingSession) return;
+
+		trainingSession.finished = true;
+
+		await saveSession();
+
 		goto('/');
 	};
 </script>
@@ -106,5 +118,5 @@
 {#if trainingSet}
 	<PuzzleProgress {puzzles} {changePuzzleScore} {changeCurrentPuzzle} {currentPuzzle} />
 	<button onclick={finishSession}>Finish session</button>
-	<button>Save session</button>
+	<button onclick={saveSession}>Save session</button>
 {/if}
