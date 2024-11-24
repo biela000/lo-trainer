@@ -28,6 +28,15 @@ type PopulatedTrainingSet struct {
 	P5Link string `json:"p5Link"`
 }
 
+type NullablePopulatedTrainingSet struct {
+	Id     int            `json:"id"`
+	P1Link sql.NullString `json:"p1Link"`
+	P2Link sql.NullString `json:"p2Link"`
+	P3Link sql.NullString `json:"p3Link"`
+	P4Link sql.NullString `json:"p4Link"`
+	P5Link sql.NullString `json:"p5Link"`
+}
+
 type TrainingSetController struct {
 	db *sql.DB
 }
@@ -66,7 +75,7 @@ func (controller *TrainingSetController) GetTrainingSets(c *gin.Context) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		trainingSet := PopulatedTrainingSet{}
+		trainingSet := NullablePopulatedTrainingSet{}
 		err = rows.Scan(
 			&trainingSet.Id,
 			&trainingSet.P1Link,
@@ -79,13 +88,16 @@ func (controller *TrainingSetController) GetTrainingSets(c *gin.Context) {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
-		trainingSets = append(trainingSets, trainingSet)
+
+		trainingSetResult := createPopulatedTrainingSet(trainingSet)
+
+		trainingSets = append(trainingSets, trainingSetResult)
 	}
 	c.JSON(http.StatusOK, trainingSets)
 }
 
 func (controller *TrainingSetController) GetTrainingSet(c *gin.Context) {
-	trainingSet := PopulatedTrainingSet{}
+	trainingSet := NullablePopulatedTrainingSet{}
 	trainingSetId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
@@ -131,7 +143,8 @@ func (controller *TrainingSetController) GetTrainingSet(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusOK, trainingSet)
+	trainingSetResult := createPopulatedTrainingSet(trainingSet)
+	c.JSON(http.StatusOK, trainingSetResult)
 }
 
 func (controller *TrainingSetController) CreateTrainingSet(c *gin.Context) {
@@ -209,7 +222,7 @@ func (controller *TrainingSetController) CreateTrainingSet(c *gin.Context) {
 	}
 	defer populateStmt.Close()
 
-	populatedTrainingSet := PopulatedTrainingSet{}
+	populatedTrainingSet := NullablePopulatedTrainingSet{}
 
 	err = populateStmt.QueryRow(trainingSet.Id).Scan(
 		&populatedTrainingSet.Id,
@@ -219,8 +232,14 @@ func (controller *TrainingSetController) CreateTrainingSet(c *gin.Context) {
 		&populatedTrainingSet.P4Link,
 		&populatedTrainingSet.P5Link,
 	)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 
-	c.JSON(http.StatusOK, populatedTrainingSet)
+	populatedTrainingSetResult := createPopulatedTrainingSet(populatedTrainingSet)
+
+	c.JSON(http.StatusOK, populatedTrainingSetResult)
 }
 
 func (controller *TrainingSetController) DeleteTrainingSet(c *gin.Context) {
@@ -376,4 +395,15 @@ func createPuzzleQuery(criteria TrainingSetCriteria) (string, []interface{}) {
 	)
 
 	return queryString, queryArgs
+}
+
+func createPopulatedTrainingSet(trainingSet NullablePopulatedTrainingSet) PopulatedTrainingSet {
+	return PopulatedTrainingSet{
+		Id:     trainingSet.Id,
+		P1Link: trainingSet.P1Link.String,
+		P2Link: trainingSet.P2Link.String,
+		P3Link: trainingSet.P3Link.String,
+		P4Link: trainingSet.P4Link.String,
+		P5Link: trainingSet.P5Link.String,
+	}
 }
