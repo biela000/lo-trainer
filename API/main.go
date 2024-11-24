@@ -37,6 +37,8 @@ func main() {
 		v1.PUT("/training_sessions/:id", trainingSessionController.UpdateTrainingSession)
 		v1.DELETE("/training_sessions/:id", trainingSessionController.DeleteTrainingSession)
 		v1.GET("/training_sessions/streak", trainingSessionController.GetTrainingSessionStreak)
+
+		v1.GET("/training_sessions/stats/subjects", trainingSessionController.GetSubjectStats)
 	}
 
 	router.Use(ErrorHandler)

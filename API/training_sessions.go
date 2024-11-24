@@ -29,6 +29,16 @@ type TrainingSession struct {
 	Finished      bool      `json:"finished"`
 }
 
+type SubjectStats struct {
+	CompundingAvg            float64 `json:"compoundingAvg"`
+	MorphologyAvg            float64 `json:"morphologyAvg"`
+	NumbersAvg               float64 `json:"numbersAvg"`
+	PhonologyAndPhoneticsAvg float64 `json:"phonologyAndPhoneticsAvg"`
+	SemanticsAvg             float64 `json:"semanticsAvg"`
+	SyntaxAvg                float64 `json:"syntaxAvg"`
+	WritingSystemAvg         float64 `json:"writingSystemAvg"`
+}
+
 type TrainingSessionController struct {
 	db *sql.DB
 }
@@ -339,4 +349,128 @@ func (controller *TrainingSessionController) GetTrainingSessionStreak(c *gin.Con
 
 	fmt.Println("Streak:", count)
 	c.JSON(http.StatusOK, map[string]int{"streak": count})
+}
+
+func (controller *TrainingSessionController) GetSubjectStats(c *gin.Context) {
+	query := `
+		WITH subject_results AS (
+			SELECT
+				Training_Sessions.id, Training_Sessions.training_set_id,
+				Training_Sets.p1_id, p1.subjects AS p1_subjects, Training_Sessions.p1_score,
+				Training_Sets.p2_id, p2.subjects AS p2_subjects, Training_Sessions.p2_score,
+				Training_Sets.p3_id, p3.subjects AS p3_subjects, Training_Sessions.p3_score,
+				Training_Sets.p4_id, p4.subjects AS p4_subjects, Training_Sessions.p4_score,
+				Training_Sets.p5_id, p5.subjects AS p5_subjects, Training_Sessions.p5_score
+			FROM
+				Training_Sessions
+			JOIN
+				Training_Sets
+			ON
+				Training_Sessions.training_set_id = Training_Sets.id
+			LEFT JOIN
+				Puzzles p1
+			ON
+				Training_Sets.p1_id = p1.id
+			LEFT JOIN
+				Puzzles p2
+			ON
+				Training_Sets.p2_id = p2.id
+			LEFT JOIN
+				Puzzles p3
+			ON
+				Training_Sets.p3_id = p3.id
+			LEFT JOIN
+				Puzzles p4
+			ON
+				Training_Sets.p4_id = p4.id
+			LEFT JOIN
+				Puzzles p5
+			ON
+				Training_Sets.p5_id = p5.id
+			WHERE
+				Training_Sessions.finished = 1
+		)
+		
+		SELECT
+			COALESCE(
+				AVG(CASE 
+					WHEN p1_subjects LIKE '%Compounding%' THEN p1_score 
+					WHEN p2_subjects LIKE '%Compounding%' THEN p2_score 
+					WHEN p3_subjects LIKE '%Compounding%' THEN p3_score 
+					WHEN p4_subjects LIKE '%Compounding%' THEN p4_score 
+					WHEN p5_subjects LIKE '%Compounding%' THEN p5_score 
+				END), 0
+			) AS compounding_avg,
+			COALESCE(
+				AVG(CASE 
+					WHEN p1_subjects LIKE '%Morphology%' THEN p1_score 
+					WHEN p2_subjects LIKE '%Morphology%' THEN p2_score 
+					WHEN p3_subjects LIKE '%Morphology%' THEN p3_score 
+					WHEN p4_subjects LIKE '%Morphology%' THEN p4_score 
+					WHEN p5_subjects LIKE '%Morphology%' THEN p5_score 
+				END), 0
+			) AS morphology_avg,
+			COALESCE(
+				AVG(CASE 
+					WHEN p1_subjects LIKE '%Numbers%' THEN p1_score 
+					WHEN p2_subjects LIKE '%Numbers%' THEN p2_score 
+					WHEN p3_subjects LIKE '%Numbers%' THEN p3_score 
+					WHEN p4_subjects LIKE '%Numbers%' THEN p4_score 
+					WHEN p5_subjects LIKE '%Numbers%' THEN p5_score 
+				END), 0) AS numbers_avg,
+			COALESCE(
+				AVG(CASE 
+					WHEN p1_subjects LIKE '%Phonology and Phonetics%' THEN p1_score 
+					WHEN p2_subjects LIKE '%Phonology and Phonetics%' THEN p2_score 
+					WHEN p3_subjects LIKE '%Phonology and Phonetics%' THEN p3_score 
+					WHEN p4_subjects LIKE '%Phonology and Phonetics%' THEN p4_score 
+					WHEN p5_subjects LIKE '%Phonology and Phonetics%' THEN p5_score 
+				END), 0
+			) AS phonology_and_phonetics_avg,
+			COALESCE(
+				AVG(CASE 
+					WHEN p1_subjects LIKE '%Semantics%' THEN p1_score 
+					WHEN p2_subjects LIKE '%Semantics%' THEN p2_score 
+					WHEN p3_subjects LIKE '%Semantics%' THEN p3_score 
+					WHEN p4_subjects LIKE '%Semantics%' THEN p4_score 
+					WHEN p5_subjects LIKE '%Semantics%' THEN p5_score 
+				END), 0
+			) AS semantics_avg,
+			COALESCE(
+				AVG(CASE 
+					WHEN p1_subjects LIKE '%Syntax%' THEN p1_score 
+					WHEN p2_subjects LIKE '%Syntax%' THEN p2_score 
+					WHEN p3_subjects LIKE '%Syntax%' THEN p3_score 
+					WHEN p4_subjects LIKE '%Syntax%' THEN p4_score 
+					WHEN p5_subjects LIKE '%Syntax%' THEN p5_score 
+				END), 0
+			) AS syntax_avg,
+			COALESCE(
+				AVG(CASE 
+					WHEN p1_subjects LIKE '%Writing System%' THEN p1_score 
+					WHEN p2_subjects LIKE '%Writing System%' THEN p2_score 
+					WHEN p3_subjects LIKE '%Writing System%' THEN p3_score 
+					WHEN p4_subjects LIKE '%Writing System%' THEN p4_score 
+					WHEN p5_subjects LIKE '%Writing System%' THEN p5_score 
+				END), 0
+			) AS writing_system_avg
+		FROM
+			subject_results;
+	`
+
+	subjectStats := SubjectStats{}
+	err := controller.db.QueryRow(query).Scan(
+		&subjectStats.CompundingAvg,
+		&subjectStats.MorphologyAvg,
+		&subjectStats.NumbersAvg,
+		&subjectStats.PhonologyAndPhoneticsAvg,
+		&subjectStats.SemanticsAvg,
+		&subjectStats.SyntaxAvg,
+		&subjectStats.WritingSystemAvg,
+	)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	c.JSON(http.StatusOK, subjectStats)
 }
