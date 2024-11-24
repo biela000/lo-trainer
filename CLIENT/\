@@ -1,0 +1,13 @@
+<script lang="ts">
+	import { PageProps } from './+page';
+
+	let { id }: PageProps = $props();
+
+	$effect(() => {
+		const getSession = async () => {
+			const response = await fetch(`${API_URL}/training_sessions/${params.id}`);
+		};
+	});
+</script>
+
+<h1>Sranie 🔥</h1>

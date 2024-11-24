@@ -154,7 +154,7 @@
 
 		const { id: trainingSessionId } = (await response.json()) as TrainingSession;
 
-		goto(`/session/${trainingSessionId}`);
+		goto(`/sessions/${trainingSessionId}`);
 	};
 </script>
 
