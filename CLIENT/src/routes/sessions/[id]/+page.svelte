@@ -6,6 +6,7 @@
 	import type { TrainingSet } from '$lib/types/training-set';
 	import type { PageProps } from './proxy+page';
 	import type { ChangeEventHandler } from 'svelte/elements';
+	import { browser } from '$app/environment';
 
 	let { data }: { data: PageProps } = $props();
 
@@ -18,6 +19,15 @@
 				`${API_URL}/training_sessions/${data.id}`
 			);
 			trainingSession = (await trainingSessionResponse.json()) as TrainingSession;
+
+			if (trainingSession.finished) {
+				localStorage.removeItem('trainingSessionId');
+				goto('/');
+			}
+
+			if (browser) {
+				localStorage.setItem('trainingSessionId', `${trainingSession.id}`);
+			}
 		};
 
 		const getTrainingSet = async () => {
@@ -110,8 +120,6 @@
 				5
 		);
 
-		console.log(trainingSession);
-
 		await fetch(`${API_URL}/training_sessions/${data.id}`, {
 			method: 'PUT',
 			headers: {
@@ -126,8 +134,20 @@
 
 		trainingSession.finished = true;
 
+		if (browser) {
+			localStorage.removeItem('trainingSessionId');
+		}
+
 		await saveSession();
 
+		goto('/');
+	};
+
+	const exitSession = () => {
+		if (!trainingSession) return;
+		if (browser) {
+			localStorage.removeItem('trainingSessionId');
+		}
 		goto('/');
 	};
 </script>
@@ -137,4 +157,5 @@
 	<PuzzleProgress {puzzles} {changePuzzleScore} {changeCurrentPuzzle} {currentPuzzle} />
 	<button onclick={finishSession}>Finish session</button>
 	<button onclick={saveSession}>Save session</button>
+	<button onclick={exitSession}>Exit session</button>
 {/if}
