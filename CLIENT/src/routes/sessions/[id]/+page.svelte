@@ -152,10 +152,30 @@
 	};
 </script>
 
-<h1>Session id #{trainingSession?.id}</h1>
-{#if trainingSet}
-	<PuzzleProgress {puzzles} {changePuzzleScore} {changeCurrentPuzzle} {currentPuzzle} />
-	<button onclick={finishSession}>Finish session</button>
-	<button onclick={saveSession}>Save session</button>
-	<button onclick={exitSession}>Exit session</button>
-{/if}
+<div class="container">
+	<h1>Session id #{trainingSession?.id}</h1>
+	{#if trainingSet}
+		<PuzzleProgress
+			{puzzles}
+			{changePuzzleScore}
+			{changeCurrentPuzzle}
+			{currentPuzzle}
+		/>
+		<button onclick={finishSession}>Finish session</button>
+		<button onclick={saveSession}>Save session</button>
+		<button onclick={exitSession}>Exit session</button>
+	{/if}
+</div>
+
+<style>
+	.container {
+		padding: 2rem;
+	}
+	button {
+		margin-top: 0.5rem;
+		padding: 0.5rem 2rem;
+		border: none;
+		background-color: #000;
+		color: #fff;
+	}
+</style>
