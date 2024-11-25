@@ -63,12 +63,18 @@
 				<td><a href={p4Link} target="_blank">{p4Link}</a></td>
 				<td><a href={p5Link} target="_blank">{p5Link}</a></td>
 				<td>
-					<button onclick={() => startTrainingSession(id)}>
+					<button
+						class="start-btn"
+						onclick={() => startTrainingSession(id)}
+					>
 						Start session
 					</button>
 				</td>
 				<td>
-					<button onclick={() => deleteTrainingSet(id)}>
+					<button
+						class="delete-btn"
+						onclick={() => deleteTrainingSet(id)}
+					>
 						Delete
 					</button>
 				</td>
@@ -76,3 +82,32 @@
 		{/each}
 	</tbody>
 </table>
+
+<style>
+	h2 {
+		margin-top: 2rem;
+	}
+	tr {
+		position: relative;
+	}
+	tr::before {
+		content: '';
+		position: absolute;
+		width: 100%;
+		height: 0.1rem;
+		background-color: #000;
+		bottom: -0.1rem;
+		left: 0;
+	}
+	button {
+		color: white;
+		border: none;
+		padding: 0.2rem 1rem;
+	}
+	.start-btn {
+		background-color: green;
+	}
+	.delete-btn {
+		background-color: darkred;
+	}
+</style>

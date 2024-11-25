@@ -15,14 +15,26 @@
 <fieldset>
 	<legend>{legend}</legend>
 	{#each checkboxes as { value, checked }, index}
-		<label for={value}>{value}</label>
-		<input
-			type="checkbox"
-			id={value}
-			name={value}
-			{value}
-			{checked}
-			onchange={() => toggleCheckbox(index)}
-		/>
+		<div>
+			<label for={value}>{value}</label>
+			<input
+				type="checkbox"
+				id={value}
+				name={value}
+				{value}
+				{checked}
+				onchange={() => toggleCheckbox(index)}
+			/>
+		</div>
 	{/each}
 </fieldset>
+
+<style>
+	fieldset {
+		display: flex;
+		flex-direction: column;
+		width: max-content;
+		gap: 0.5rem;
+		padding: 0.5rem;
+	}
+</style>

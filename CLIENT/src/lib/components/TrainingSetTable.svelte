@@ -32,3 +32,21 @@
 		{/each}
 	</tbody>
 </table>
+
+<style>
+	table {
+		margin-top: 1rem;
+	}
+	tr {
+		position: relative;
+	}
+	tr::before {
+		content: '';
+		position: absolute;
+		width: 100%;
+		height: 0.1rem;
+		background-color: #000;
+		bottom: -0.1rem;
+		left: 0;
+	}
+</style>

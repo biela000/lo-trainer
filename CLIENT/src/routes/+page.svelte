@@ -15,12 +15,23 @@
 	}
 </script>
 
-<header>
-	<Welcome />
-</header>
-<main>
-	<NewTrainingSetForm />
-	<TrainingSets />
-	<TrainingSessions />
-	<SubjectStats />
-</main>
+<div class="container">
+	<header>
+		<Welcome />
+	</header>
+	<main>
+		<NewTrainingSetForm />
+		<TrainingSets />
+		<TrainingSessions />
+		<SubjectStats />
+	</main>
+</div>
+
+<style>
+	.container {
+		padding: 3rem;
+	}
+	main {
+		margin-top: 2rem;
+	}
+</style>

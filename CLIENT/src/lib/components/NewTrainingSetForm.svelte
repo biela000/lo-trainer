@@ -159,23 +159,63 @@
 </script>
 
 <form onsubmit={handleSubmit}>
-	<CheckboxFieldset legend="Choose the levels you want to include" bind:checkboxes={levels} />
-	<CheckboxFieldset
-		legend="Choose the subjects you want your levels to be about"
-		bind:checkboxes={subjects}
-	/>
-	<CheckboxFieldset legend="Choose the formats of your levels" bind:checkboxes={formats} />
-	<YearFieldset {yearsArray} bind:minYear bind:maxYear />
-	<fieldset>
-		<legend>Score</legend>
-		<label for="minScore">Min</label>
-		<input type="number" id="minScore" bind:value={minScore} min={0} max={100} />
-		<label for="maxScore">Max</label>
-		<input type="number" id="maxScore" bind:value={maxScore} min={0} max={100} />
-	</fieldset>
+	<div class="checkbox-fieldsets">
+		<CheckboxFieldset
+			legend="Choose the levels you want to include"
+			bind:checkboxes={levels}
+		/>
+		<CheckboxFieldset
+			legend="Choose the subjects you want your levels to be about"
+			bind:checkboxes={subjects}
+		/>
+		<CheckboxFieldset
+			legend="Choose the formats of your levels"
+			bind:checkboxes={formats}
+		/>
+	</div>
+	<div class="number-inputs">
+		<YearFieldset {yearsArray} bind:minYear bind:maxYear />
+		<fieldset>
+			<legend>Score</legend>
+			<label for="minScore">Min</label>
+			<input
+				type="number"
+				id="minScore"
+				bind:value={minScore}
+				min={0}
+				max={100}
+			/>
+			<label for="maxScore">Max</label>
+			<input
+				type="number"
+				id="maxScore"
+				bind:value={maxScore}
+				min={0}
+				max={100}
+			/>
+		</fieldset>
+	</div>
 	<button type="submit">Create training set</button>
 </form>
 {#if newTrainingSet}
 	<TrainingSetTable trainingSets={[newTrainingSet]} />
 	<button onclick={startTrainingSession}>Start training session</button>
 {/if}
+
+<style>
+	fieldset {
+		padding: 0.5em;
+	}
+	.checkbox-fieldsets,
+	.number-inputs {
+		display: flex;
+		gap: 2rem;
+	}
+	button {
+		margin-top: 0.5rem;
+		background-color: #000;
+		color: #eee;
+		border: none;
+		padding: 0.5rem 2rem;
+	}
+</style>

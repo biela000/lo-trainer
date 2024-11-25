@@ -23,3 +23,9 @@
 		{/each}
 	</select>
 </fieldset>
+
+<style>
+	fieldset {
+		padding: 0.5rem;
+	}
+</style>

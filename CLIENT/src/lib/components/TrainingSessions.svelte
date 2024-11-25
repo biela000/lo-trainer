@@ -61,12 +61,12 @@
 				<td>{trainingSession.p4Score}</td>
 				<td>{trainingSession.p5Score}</td>
 				<td>{trainingSession.fullScore}</td>
-				<td>{trainingSession.p1Time}</td>
-				<td>{trainingSession.p2Time}</td>
-				<td>{trainingSession.p3Time}</td>
-				<td>{trainingSession.p4Time}</td>
-				<td>{trainingSession.p5Time}</td>
-				<td>{trainingSession.fullTime}</td>
+				<td>{new Date(trainingSession.p1Time).getMinutes()}m</td>
+				<td>{new Date(trainingSession.p2Time).getMinutes()}m</td>
+				<td>{new Date(trainingSession.p3Time).getMinutes()}m</td>
+				<td>{new Date(trainingSession.p4Time).getMinutes()}m</td>
+				<td>{new Date(trainingSession.p5Time).getMinutes()}m</td>
+				<td>{new Date(trainingSession.fullTime).getMinutes()}m</td>
 				<td>{trainingSession.finished}</td>
 				{#if !trainingSession.finished}
 					<td>
@@ -87,3 +87,30 @@
 		{/each}
 	</tbody>
 </table>
+
+<style>
+	table {
+		width: 100%;
+	}
+	h2 {
+		margin-top: 2rem;
+	}
+	tr {
+		position: relative;
+	}
+	tr::before {
+		content: '';
+		position: absolute;
+		width: 100%;
+		height: 0.1rem;
+		background-color: #000;
+		bottom: -0.1rem;
+		left: 0;
+	}
+	button {
+		background-color: darkred;
+		color: white;
+		border: none;
+		padding: 0.2rem 1rem;
+	}
+</style>

@@ -64,3 +64,12 @@
 		</tbody>
 	</table>
 {/if}
+
+<style>
+	h2 {
+		margin-top: 2rem;
+	}
+	td {
+		padding-right: 3rem;
+	}
+</style>
