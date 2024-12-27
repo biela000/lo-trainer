@@ -46,7 +46,7 @@
 						value={score}
 					/>
 				</td>
-				<td>{new Date(time).getMinutes()}m</td>
+				<td>{new Date(time).getHours()}h {new Date(time).getMinutes()}m</td>
 				<td>
 					<button onclick={changeCurrentPuzzle(i)}>
 						{currentPuzzle === i ? 'Stop' : 'Start'}
